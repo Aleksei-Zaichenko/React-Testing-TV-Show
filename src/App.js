@@ -31,10 +31,6 @@ export default function App() {
     return <h2>Fetching data...</h2>;
   }
 
-  console.log('seanos', seasons);
-  console.log('seasons[selectedSeason]', seasons[selectedSeason]);
-  console.log('episodes', episodes);
-
   return (
     <div className="App">
       <img className="poster-img" src={show.image.original} alt={show.name} />

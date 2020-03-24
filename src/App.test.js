@@ -1,5 +1,5 @@
 import React from 'react';
-import {render, waitFor} from '@testing-library/react';
+import {render, fireEvent, waitFor} from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 
 import App from './App';
@@ -9,6 +9,8 @@ jest.mock("./api/fetchShow");
 
 const showData = {
     data: {
+        id: 2993,
+        url: "http://www.tvmaze.com/shows/2993/stranger-things",
         name: "Stranger Things",
         image: { original: "http://static.tvmaze.com/uploads/images/original_untouched/200/501942.jpg" },
         summary: "<p>A love letter to the '80s classics that captivated a generation, <b>Stranger Things</b> is set in 1983 Indiana, where a young boy vanishes into thin air.<p>",
@@ -111,20 +113,48 @@ const showData = {
                     summary: "While the search for the missing Will continues, Joyce tells Jim about a call she apparently received from her son. Meanwhile, Jane warns Mike that there are bad people after her, and he realizes that she knows what happened to Will."
                 }
             ]
-        }
-}};
+        }   
+    }
+};
 
 test("rendering data and clicking on the dropdown menu", async () => {
 
+    expect(showData).toHaveProperty('data');
+    expect(showData.data).toHaveProperty('_embedded');
+    expect(showData.data._embedded.episodes).toHaveLength(6)
+
+    expect(mockFetchShow).toBeDefined()
+
     mockFetchShow.mockResolvedValueOnce(showData);
 
-    const { getByText, queryAllByTestId, queryBy } = render(<App />);
+    const { getByText, queryAllByTestId, findByText } = render(<App />);
 
-    //userEvent.click(getByText(/Select a season/i));
+    expect(findByText(/Stranger Things/i));
 
-    await waitFor(()=>
-        expect(queryAllByTestId(/episode-list/i)).toHaveLength(6)
-    )
+    await waitFor(() => {
+        expect(getByText(/select a season/i));
+    });
+
+    userEvent.click(getByText(/select a season/i));
+    fireEvent.click(getByText(/Season 3/i));
+    expect(queryAllByTestId(/episode-list/i)).toHaveLength(2)
 
     expect(mockFetchShow).toHaveBeenCalledTimes(1);
+})
+
+test("rendering data and clicking on the dropdown menu for a different season", async () => {
+
+    mockFetchShow.mockResolvedValueOnce(showData);
+
+    const { getByText, queryAllByTestId, findByText } = render(<App />);
+
+    expect(findByText(/Stranger Things/i));
+
+    await waitFor(() => {
+        expect(getByText(/select a season/i));
+    });
+
+    userEvent.click(getByText(/select a season/i));
+    fireEvent.click(getByText(/Season 1/i));
+    expect(queryAllByTestId(/episode-list/i)).toHaveLength(2)
 })
